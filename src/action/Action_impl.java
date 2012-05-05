@@ -5,7 +5,11 @@ import event.RData_e;
 import event.SData_e;
 import Fsm.*;
 
-public class Action_ extends Action{
+/**
+ * Action to take when a transition happens
+ *
+ */
+public class Action_impl extends Action{
 
 	@Override
 	public void execute(FSM fsm, Event event) {
@@ -13,20 +17,23 @@ public class Action_ extends Action{
 		State currentState = fsm.currentState(); 
 		System.out.println(event + "received, current State is "+ currentState);
 		
+		/**
+		 * Counting the number of SDATA or RDATA Events received to date
+		 */
 		if (event.getClass().equals(RData_e.class))
 		{	
-			Established state = (Established) fsm.currentState();
+			Established state = (Established) currentState;
 			state.num++;
 			System.out.println("DATA received "+ state.num);
 		}
 		
 		if (event.getClass().equals(SData_e.class))
-		{
-			System.out.println("DATA sent ");
+		{	
+			Established state = (Established) currentState;
+			state.num++;
+			System.out.println("DATA sent "+ state.num);
 		}
-		
-
-		
+	
 	}
 
 }

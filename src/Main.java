@@ -1,54 +1,82 @@
-import action.*;
-import event.*;
-import state.*;
-import Fsm.Action;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
 import Fsm.Event;
 import Fsm.FSM;
-import Fsm.State;
-import Fsm.Transition;
+import Fsm.FsmException;
 
- //http://upload.wikimedia.org/wikipedia/en/f/f6/Tcp_state_diagram_fixed_new.svg
-//http://www.tcpipguide.com/free/t_TCPOperationalOverviewandtheTCPFiniteStateMachineF-2.htm
-
+/**
+ * Entry point class
+ *
+ */
 public class Main {
 	
 	public static void main(String[] args) throws Exception {
 		
 		System.out.println("TCP Finite State Machine Simulation Begins: ");
-		System.out.println("");
 		
-		State listen = new Listen("listen state");	
-		State syn_sent = new Syn_Sent("Syn sent");
+		States states = new States();
+		FSM fsm = new FSM("finate state machine", states.closed);
+		System.out.println("Start state: "+ fsm.currentState());
 		
-		State established = new Established("Establised state");
+		Events events = new Events();
+		Transitions transitions = new Transitions();
 		
-		FSM fsm = new FSM("finate state machine", listen);
+		fsm.addTransition(transitions.closed_to_listen);
+		fsm.addTransition(transitions.listen_to_syn_rcvd);
+		fsm.addTransition(transitions.syn_rcvd_to_established);
+		fsm.addTransition(transitions.closed_to_syn_sent);
+		fsm.addTransition(transitions.syn_sent_to_established);
+		fsm.addTransition(transitions.listen_to_closed);
+		fsm.addTransition(transitions.syn_sent_to_closed);
+		fsm.addTransition(transitions.syn_sent_to_syn_rcvd);
+		fsm.addTransition(transitions.syn_rvcd_to_fin_wait_1);
+		fsm.addTransition(transitions.established_to_established_s);
+		fsm.addTransition(transitions.established_to_established_r);
+		fsm.addTransition(transitions.established_to_fin_wait_1);
+		fsm.addTransition(transitions.established_to_close_wait);
+		fsm.addTransition(transitions.fin_wait_1_to_fin_wait_2);
+		fsm.addTransition(transitions.fin_wait_2_to_timewait);
+		fsm.addTransition(transitions.close_wait_to_last_ack);
+		fsm.addTransition(transitions.last_ack_to_closed);
+		fsm.addTransition(transitions.time_wait_to_closed);
+		fsm.addTransition(transitions.fin_wait_1_to_closing);
+		fsm.addTransition(transitions.closing_to_time_wait);
+		
+		/**
+		 * Get user input
+		 */
+		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+		System.out.println("please input the EVENT for next state: ");		
+		String input = reader.readLine();
+		
+		/**
+		 * LOOP TILL THE USER ENTER "END" TO STOP
+		 */
+		while (!input.equals("END")){
 			
-		Event e = new Passive_e("PASSIVE");
-		Event rData = new RData_e("RDATA"); 
-		Event sData = new SData_e("SDATA");
+			Event event = events.get(input);
+			if (event != null){
+				// Undefined Transition exception
+				try{				
+					fsm.doEvent(event);
+				} 
+				catch(FsmException e){
+					System.err.println(e.toString());
+				}				
+			}	
+			//Undefined Event Error			
+			else {				
+				System.err.println("Error: unexpected Event:" + input);
+			}
+			
+			System.out.println("please input the EVENT for next state: ");	
+			input = reader.readLine();
+		}
+		
+		System.out.println("Bye!");	
 		
 
-		Action ac = new Action_();
-		//ac.execute(fsm, e);
-		Transition t = new Transition(listen, e, syn_sent, ac);
-		
-		fsm.addTransition(t);
-		System.out.println("current State is "+fsm.currentState());
-		fsm.doEvent(e);
-		
-		Transition t2 = new Transition(syn_sent, rData, established, ac);
-		fsm.addTransition(t2);
-		System.out.println("current State is "+fsm.currentState());
-		fsm.doEvent(rData);
-		
-		Transition t3 = new Transition(established, sData, established, ac);
-		fsm.addTransition(t3);
-		System.out.println("current State is "+fsm.currentState());
-		fsm.doEvent(sData);
-		//Transition t1 = new Transition();
-		
-	 
 	  }
 
 }
